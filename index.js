@@ -22,11 +22,6 @@ module.exports = {
        */
       onLoading: (conf, program) => co(function*(){
 
-        /**
-         * Cannot use:
-         *
-         * - N, or r, or p alone (requires at least a salt or passwd)
-         */
         if ((program.keyN || program.keyr || program.keyp) && !program.salt && !program.passwd) {
           throw Error('Missing --salt and --passwd options along with --keyN|keyr|keyp option');
         }
