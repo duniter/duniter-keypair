@@ -15,7 +15,7 @@ Usage
 
   duniter config --salt abc --passwd def
     
-This will *store* in Dunite configuration file a keypair derived from ``abc`` and ``def`` strings:
+This will *store* in Duniter configuration file a keypair derived from ``abc`` and ``def`` strings:
 
 .. code:: json
 
