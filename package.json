@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --growl test/"
+    "test": "mocha --growl --timeout 10000 test/"
   },
   "repository": {
     "type": "git",
