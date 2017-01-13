@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --growl tests/"
+    "test": "mocha --growl test/"
   },
   "repository": {
     "type": "git",
