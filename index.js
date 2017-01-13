@@ -30,14 +30,14 @@ module.exports = {
         if (program.salt || program.passwd) {
           const salt = program.salt || '';
           const key  = program.passwd || '';
-          conf.pair = scrypt(salt, key);
+          conf.pair = yield scrypt(salt, key);
         }
 
         // If no keypair has been loaded or derived from salt/key, generate a random one
         if (!conf.pair) {
           const salt = ~~(Math.random() * 2147483647) + "";
           const key  = ~~(Math.random() * 2147483647) + "";
-          conf.pair = scrypt(salt, key);
+          conf.pair = yield scrypt(salt, key);
         }
 
 
