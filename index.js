@@ -1,6 +1,7 @@
 "use strict";
 
 const co = require('co');
+const inquirer = require('inquirer');
 const scrypt = require('./lib/scrypt');
 
 module.exports = {
@@ -14,6 +15,33 @@ module.exports = {
       { value: '--keyr <r>', desc: 'Scrypt `N` parameter. Defaults to 16.', parser: parseInt },
       { value: '--keyp <p>', desc: 'Scrypt `N` parameter. Defaults to 1.', parser: parseInt }
     ],
+
+    wizard: {
+
+      'key': (conf, program) => co(function*() {
+        const obfuscatedSalt = (program.salt || "").replace(/./g, '*');
+        const answersSalt = yield inquirer.prompt([{
+          type: "password",
+          name: "salt",
+          message: "Key's salt",
+          default: obfuscatedSalt || undefined
+        }]);
+        const obfuscatedPasswd = (program.passwd || "").replace(/./g, '*');
+        const answersPasswd = yield inquirer.prompt([{
+          type: "password",
+          name: "passwd",
+          message: "Key\'s password",
+          default: obfuscatedPasswd || undefined
+        }]);
+
+        const keepOldSalt = obfuscatedSalt.length > 0 && obfuscatedSalt == answersSalt.salt;
+        const keepOldPasswd = obfuscatedPasswd.length > 0 && obfuscatedPasswd == answersPasswd.passwd;
+        const salt   = keepOldSalt ? program.salt : answersSalt.salt;
+        const passwd = keepOldPasswd ? program.passwd : answersPasswd.passwd;
+        conf.pair = yield scrypt(salt, passwd);
+      })
+
+    },
 
     config: {
 
