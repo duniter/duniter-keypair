@@ -23,6 +23,7 @@
     "url": "https://github.com/duniter/duniter-keypair/issues"
   },
   "dependencies": {
+    "bs58": "^4.0.0",
     "co": "4.6.0",
     "node-pre-gyp": "0.6.32",
     "q": "1.4.1",
