@@ -8,6 +8,10 @@ module.exports = {
 
   duniter: {
 
+    methods: {
+      scrypt
+    },
+
     cliOptions: [
       { value: '--salt <salt>', desc: 'Salt to generate the keypair' },
       { value: '--passwd <password>', desc: 'Password to generate the keypair' },
@@ -62,7 +66,7 @@ module.exports = {
         }
 
         // If no keypair has been loaded or derived from salt/key, generate a random one
-        if (!conf.pair) {
+        if (!conf.pair || !conf.pair.pub || !conf.pair.sec) {
           const salt = ~~(Math.random() * 2147483647) + "";
           const key  = ~~(Math.random() * 2147483647) + "";
           conf.pair = yield scrypt(salt, key);
