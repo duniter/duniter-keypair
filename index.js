@@ -2,6 +2,8 @@
 
 const co = require('co');
 const inquirer = require('inquirer');
+const fs = require('fs');
+const yaml = require('js-yaml');
 const scrypt = require('./lib/scrypt');
 
 module.exports = {
@@ -18,7 +20,8 @@ module.exports = {
       { value: '--keyN <N>', desc: 'Scrypt `N` parameter. Defaults to 4096.', parser: parseInt },
       { value: '--keyr <r>', desc: 'Scrypt `N` parameter. Defaults to 16.', parser: parseInt },
       { value: '--keyp <p>', desc: 'Scrypt `N` parameter. Defaults to 1.', parser: parseInt },
-      { value: '--keyprompt', desc: 'Force to use the keypair given by user prompt.' }
+      { value: '--keyprompt', desc: 'Force to use the keypair given by user prompt.' },
+      { value: '--keyfile <filepath>', desc: 'Force to use the keypair of the given YAML file. File must contain `pub:` and `sec:` fields.' }
     ],
 
     wizard: {
@@ -54,27 +57,49 @@ module.exports = {
 
         // With the --keyprompt option, temporarily use a keypair given from CLI prompt (it won't be stored)
         if (program.keyprompt) {
+          // Backup of the current pair
           conf.oldPair = {
             pub: conf.pair.pub,
             sec: conf.pair.sec
           };
+          // Ask the for the session key
           yield promptKey(conf, program);
+        }
+
+        // With the --keyfile option, temporarily use a keypair given from file system (content won't be stored)
+        if (program.keyfile) {
+          // Backup of the current pair
+          conf.oldPair = {
+            pub: conf.pair.pub,
+            sec: conf.pair.sec
+          };
+          // Load file content
+          const doc = yaml.safeLoad(fs.readFileSync(program.keyfile, 'utf8'));
+          if (!doc || !doc.pub || !doc.sec) {
+            throw 'Could not load full keyring from file';
+          }
+          conf.pair = {
+            pub: doc.pub,
+            sec: doc.sec
+          }
         }
 
       }),
 
       beforeSave: (conf, program) => co(function*(){
-        if (program.keyprompt) {
-          // Don't store the prompted key, but the stored one
+
+        if (program.keyprompt || program.keyfile) {
+          // Don't store the given key, but only the default/saved one
           conf.pair = {
             pub: conf.oldPair.pub,
             sec: conf.oldPair.sec
           };
         }
+        delete conf.oldPair;
+
         // We never want to store salt or password
         delete conf.salt;
         delete conf.passwd;
-        delete conf.oldPair;
       })
     }
   }
