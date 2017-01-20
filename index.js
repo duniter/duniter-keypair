@@ -17,33 +17,13 @@ module.exports = {
       { value: '--passwd <password>', desc: 'Password to generate the keypair' },
       { value: '--keyN <N>', desc: 'Scrypt `N` parameter. Defaults to 4096.', parser: parseInt },
       { value: '--keyr <r>', desc: 'Scrypt `N` parameter. Defaults to 16.', parser: parseInt },
-      { value: '--keyp <p>', desc: 'Scrypt `N` parameter. Defaults to 1.', parser: parseInt }
+      { value: '--keyp <p>', desc: 'Scrypt `N` parameter. Defaults to 1.', parser: parseInt },
+      { value: '--keyprompt', desc: 'Force to use the keypair given by user prompt.' }
     ],
 
     wizard: {
 
-      'key': (conf, program) => co(function*() {
-        const obfuscatedSalt = (program.salt || "").replace(/./g, '*');
-        const answersSalt = yield inquirer.prompt([{
-          type: "password",
-          name: "salt",
-          message: "Key's salt",
-          default: obfuscatedSalt || undefined
-        }]);
-        const obfuscatedPasswd = (program.passwd || "").replace(/./g, '*');
-        const answersPasswd = yield inquirer.prompt([{
-          type: "password",
-          name: "passwd",
-          message: "Key\'s password",
-          default: obfuscatedPasswd || undefined
-        }]);
-
-        const keepOldSalt = obfuscatedSalt.length > 0 && obfuscatedSalt == answersSalt.salt;
-        const keepOldPasswd = obfuscatedPasswd.length > 0 && obfuscatedPasswd == answersPasswd.passwd;
-        const salt   = keepOldSalt ? program.salt : answersSalt.salt;
-        const passwd = keepOldPasswd ? program.passwd : answersPasswd.passwd;
-        conf.pair = yield scrypt(salt, passwd);
-      })
+      'key': promptKey
 
     },
 
@@ -72,14 +52,55 @@ module.exports = {
           conf.pair = yield scrypt(salt, key);
         }
 
+        // With the --keyprompt option, temporarily use a keypair given from CLI prompt (it won't be stored)
+        if (program.keyprompt) {
+          conf.oldPair = {
+            pub: conf.pair.pub,
+            sec: conf.pair.sec
+          };
+          yield promptKey(conf, program);
+        }
 
       }),
 
       beforeSave: (conf, program) => co(function*(){
+        if (program.keyprompt) {
+          // Don't store the prompted key, but the stored one
+          conf.pair = {
+            pub: conf.oldPair.pub,
+            sec: conf.oldPair.sec
+          };
+        }
         // We never want to store salt or password
         delete conf.salt;
         delete conf.passwd;
+        delete conf.oldPair;
       })
     }
   }
 };
+
+function promptKey (conf, program) {
+  return co(function*() {
+    const obfuscatedSalt = (program.salt || "").replace(/./g, '*');
+    const answersSalt = yield inquirer.prompt([{
+      type: "password",
+      name: "salt",
+      message: "Key's salt",
+      default: obfuscatedSalt || undefined
+    }]);
+    const obfuscatedPasswd = (program.passwd || "").replace(/./g, '*');
+    const answersPasswd = yield inquirer.prompt([{
+      type: "password",
+      name: "passwd",
+      message: "Key\'s password",
+      default: obfuscatedPasswd || undefined
+    }]);
+
+    const keepOldSalt = obfuscatedSalt.length > 0 && obfuscatedSalt == answersSalt.salt;
+    const keepOldPasswd = obfuscatedPasswd.length > 0 && obfuscatedPasswd == answersPasswd.passwd;
+    const salt   = keepOldSalt ? program.salt : answersSalt.salt;
+    const passwd = keepOldPasswd ? program.passwd : answersPasswd.passwd;
+    conf.pair = yield scrypt(salt, passwd);
+  });
+}
