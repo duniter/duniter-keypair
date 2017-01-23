@@ -107,25 +107,37 @@ module.exports = {
 
 function promptKey (conf, program) {
   return co(function*() {
-    const obfuscatedSalt = (program.salt || "").replace(/./g, '*');
-    const answersSalt = yield inquirer.prompt([{
-      type: "password",
-      name: "salt",
-      message: "Key's salt",
-      default: obfuscatedSalt || undefined
-    }]);
-    const obfuscatedPasswd = (program.passwd || "").replace(/./g, '*');
-    const answersPasswd = yield inquirer.prompt([{
-      type: "password",
-      name: "passwd",
-      message: "Key\'s password",
-      default: obfuscatedPasswd || undefined
+
+    const changeKeypair = !conf.pair || !conf.pair.pub || !conf.pair.sec;
+
+    const answersWantToChange = yield inquirer.prompt([{
+      type: "confirm",
+      name: "change",
+      message: "Modify you keypair?",
+      default: changeKeypair
     }]);
 
-    const keepOldSalt = obfuscatedSalt.length > 0 && obfuscatedSalt == answersSalt.salt;
-    const keepOldPasswd = obfuscatedPasswd.length > 0 && obfuscatedPasswd == answersPasswd.passwd;
-    const salt   = keepOldSalt ? program.salt : answersSalt.salt;
-    const passwd = keepOldPasswd ? program.passwd : answersPasswd.passwd;
-    conf.pair = yield scrypt(salt, passwd);
+    if (answersWantToChange.change) {
+      const obfuscatedSalt = (program.salt || "").replace(/./g, '*');
+      const answersSalt = yield inquirer.prompt([{
+        type: "password",
+        name: "salt",
+        message: "Key's salt",
+        default: obfuscatedSalt || undefined
+      }]);
+      const obfuscatedPasswd = (program.passwd || "").replace(/./g, '*');
+      const answersPasswd = yield inquirer.prompt([{
+        type: "password",
+        name: "passwd",
+        message: "Key\'s password",
+        default: obfuscatedPasswd || undefined
+      }]);
+
+      const keepOldSalt = obfuscatedSalt.length > 0 && obfuscatedSalt == answersSalt.salt;
+      const keepOldPasswd = obfuscatedPasswd.length > 0 && obfuscatedPasswd == answersPasswd.passwd;
+      const salt   = keepOldSalt ? program.salt : answersSalt.salt;
+      const passwd = keepOldPasswd ? program.passwd : answersPasswd.passwd;
+      conf.pair = yield scrypt(salt, passwd);
+    }
   });
 }
