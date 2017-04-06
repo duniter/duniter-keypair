@@ -1,6 +1,6 @@
 {
   "name": "duniter-keypair",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "main": "index.js",
   "scripts": {
     "test": "mocha --growl --timeout 10000 test/"
@@ -34,7 +34,7 @@
     "tweetnacl-util": "0.15.0"
   },
   "devDependencies": {
-    "duniter": "^1.1.0",
+    "duniter": "^1.2.0",
     "mocha": "3.2.0",
     "should": "11.1.2"
   }
