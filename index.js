@@ -35,7 +35,7 @@ module.exports = {
       /*****
        * Tries to load a specific parameter `conf.pair`
        */
-      onLoading: (conf, program) => co(function*(){
+      onLoading: (conf, program, logger, confDAL) => co(function*(){
 
         if ((program.keyN || program.keyr || program.keyp) && !program.salt && !program.passwd) {
           throw Error('Missing --salt and --passwd options along with --keyN|keyr|keyp option');
@@ -46,6 +46,12 @@ module.exports = {
           const salt = program.salt || '';
           const key  = program.passwd || '';
           conf.pair = yield scrypt(salt, key);
+        }
+
+        // If no keypair has been loaded, try the default .yml file
+        if (!conf.pair || !conf.pair.pub || !conf.pair.sec) {
+          const ymlContent = yield confDAL.coreFS.read('keyring.yml')
+          conf.pair = yaml.safeLoad(ymlContent);
         }
 
         // If no keypair has been loaded or derived from salt/key, generate a random one
@@ -86,7 +92,7 @@ module.exports = {
 
       }),
 
-      beforeSave: (conf, program) => co(function*(){
+      beforeSave: (conf, program, logger, confDAL) => co(function*(){
 
         if (program.keyprompt || program.keyfile) {
           // Don't store the given key, but only the default/saved one
@@ -97,9 +103,15 @@ module.exports = {
         }
         delete conf.oldPair;
 
-        // We never want to store salt or password
+        // We save the key in a separate file
+        const keyring = 'pub: "' + conf.pair.pub + '"\n' +
+          'sec: "' + conf.pair.sec + '"'
+        yield confDAL.coreFS.write('keyring.yml', keyring)
+
+        // We never want to store salt, password or keypair in the conf.json file
         delete conf.salt;
         delete conf.passwd;
+        delete conf.pair;
       })
     }
   }
