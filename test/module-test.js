@@ -5,6 +5,8 @@ const keypair = require('../index');
 const assert = require('assert');
 const duniter = require('duniter');
 
+duniter.statics.logger.mute()
+
 describe('Module usage', () => {
 
   it('wrong options should throw', () => co(function*() {
