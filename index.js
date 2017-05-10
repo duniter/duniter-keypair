@@ -37,7 +37,7 @@ module.exports = {
        */
       onLoading: (conf, program, logger, confDAL) => co(function*(){
 
-        if ((program.keyN || program.keyr || program.keyp) && !program.salt && !program.passwd) {
+        if ((program.keyN || program.keyr || program.keyp) && !(program.salt && program.passwd)) {
           throw Error('Missing --salt and --passwd options along with --keyN|keyr|keyp option');
         }
 
