@@ -30,6 +30,10 @@ module.exports = {
 
     },
 
+    onReset: {
+      config: (conf, program, logger, confDAL) => confDAL.coreFS.remove('keyring.yml')
+    },
+
     config: {
 
       /*****
