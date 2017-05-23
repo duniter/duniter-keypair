@@ -34,8 +34,11 @@
     "tweetnacl-util": "0.15.0"
   },
   "devDependencies": {
-    "duniter": "^1.2.0",
+    "duniter": "1.2.x",
     "mocha": "3.2.0",
     "should": "11.1.2"
+  },
+  "peerDependencies": {
+    "duniter": "1.3.x"
   }
 }
