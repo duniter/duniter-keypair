@@ -35,6 +35,7 @@
   },
   "devDependencies": {
     "duniter": "1.2.x",
+    "duniter-bma": "1.1.x",
     "mocha": "3.2.0",
     "should": "11.1.2"
   },
