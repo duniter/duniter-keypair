@@ -4,6 +4,7 @@ const co = require('co');
 const inquirer = require('inquirer');
 const fs = require('fs');
 const yaml = require('js-yaml');
+const common = require('duniter-common');
 const scrypt = require('./lib/scrypt');
 
 module.exports = {
@@ -60,9 +61,7 @@ module.exports = {
 
         // If no keypair has been loaded or derived from salt/key, generate a random one
         if (!conf.pair || !conf.pair.pub || !conf.pair.sec) {
-          const salt = ~~(Math.random() * 2147483647) + "";
-          const key  = ~~(Math.random() * 2147483647) + "";
-          conf.pair = yield scrypt(salt, key);
+          conf.pair = common.keyring.randomKey().json()
         }
 
         // With the --keyprompt option, temporarily use a keypair given from CLI prompt (it won't be stored)
